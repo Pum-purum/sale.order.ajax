@@ -4920,23 +4920,15 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
                 logotype, label, title, itemNode, logoNode, span;
 
             logoNode = BX.create('IMG', {props: {className: 'company-image'}});
-            logotype = this.getImageSources(item, 'PSA_LOGOTIP');
-            if (logotype && logotype.src_2x) {
-                /*logoNode.setAttribute('style',
-                 'background-image: url(' + logotype.src_1x + ');' +
-                 'background-image: -webkit-image-set(url(' + logotype.src_1x + ') 1x)'
-                 );*/
-                logoNode.setAttribute('src', logotype.src_1x);
+            logotype = item.LOGOTIP_SRC;
+            if (!logotype) {
+                logotype = this.defaultDeliveryLogo;
             }
-            else {
-                logotype = logotype && logotype.src_1x || this.defaultDeliveryLogo;
-                logoNode.setAttribute('style', 'width: 100px');
-                // logoNode.setAttribute('style', 'height: 50px');
-                logoNode.setAttribute('src', logotype);
-            }
+            logoNode.setAttribute('src', logotype);
+            logoNode.setAttribute('style', 'width: 100px');
             labelNodes.push(logoNode);
 
-            if (item.PRICE >= 0 || typeof item.DELIVERY_DISCOUNT_PRICE !== 'undefined') {
+            if (item.PRICE > 0 || typeof item.DELIVERY_DISCOUNT_PRICE !== 'undefined') {
                 labelNodes.push(
                     BX.create('DIV', {
                         props: {className: 'bx-soa-pp-delivery-cost'},
@@ -4946,7 +4938,7 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
                     })
                 );
             }
-            else if (deliveryCached && (deliveryCached.PRICE >= 0 || typeof deliveryCached.DELIVERY_DISCOUNT_PRICE !== 'undefined')) {
+            else if (deliveryCached && (deliveryCached.PRICE > 0 || typeof deliveryCached.DELIVERY_DISCOUNT_PRICE !== 'undefined')) {
                 labelNodes.push(
                     BX.create('DIV', {
                         props: {className: 'bx-soa-pp-delivery-cost'},
