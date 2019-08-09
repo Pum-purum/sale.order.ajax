@@ -350,6 +350,16 @@ else
 					</div>
 				<? endif ?>
 
+				<!--	BUYER PROPS BLOCK	-->
+				<div id="bx-soa-properties" data-visited="false" class="bx-soa-section bx-active">
+					<div class="bx-soa-section-title-container">
+						<h2 class="bx-soa-section-title col-sm-9">
+                            <?=$arParams['MESS_BUYER_BLOCK_NAME']?>
+						</h2>
+					</div>
+					<div class="bx-soa-section-content container-fluid"></div>
+				</div>
+
 				<!--	REGION BLOCK	-->
 				<div id="bx-soa-region" data-visited="false" class="bx-soa-section bx-active">
 					<div class="bx-soa-section-title-container">
@@ -417,15 +427,6 @@ else
 						<div class="bx-soa-section-content container-fluid"></div>
 					</div>
 				<? endif ?>
-				<!--	BUYER PROPS BLOCK	-->
-				<div id="bx-soa-properties" data-visited="false" class="bx-soa-section bx-active">
-					<div class="bx-soa-section-title-container">
-						<h2 class="bx-soa-section-title col-sm-9">
-							<?=$arParams['MESS_BUYER_BLOCK_NAME']?>
-						</h2>
-					</div>
-					<div class="bx-soa-section-content container-fluid"></div>
-				</div>
 
 				<? if ($arParams['BASKET_POSITION'] === 'after'): ?>
 					<!--	BASKET ITEMS BLOCK	-->
@@ -441,6 +442,7 @@ else
 
 				<!--	ORDER SAVE BLOCK	-->
 				<div id="bx-soa-orderSave">
+				<div id="commentBlock"></div>
 					<div class="checkbox">
 						<?
 						if ($arParams['USER_CONSENT'] === 'Y')
@@ -463,11 +465,8 @@ else
 						}
 						?>
 					</div>
-					<a href="javascript:void(0)" style="margin: 10px 0" class="pull-right btn btn-default btn-lg hidden-xs" data-save-button="true">
-						<?=$arParams['MESS_ORDER']?>
-					</a>
+					<button id="order_save_button" style="margin: 10px 0; display: block" class="pull-right btn btn-default btn-lg hidden-xs" data-save-button="true"><?=$arParams['MESS_ORDER']?></button>
 				</div>
-
 				<div style="display: none;">
 					<div id='bx-soa-basket-hidden' class="bx-soa-section"></div>
 					<div id='bx-soa-region-hidden' class="bx-soa-section"></div>
