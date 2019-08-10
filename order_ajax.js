@@ -94,6 +94,8 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
             this.paySystemHiddenBlockNode = BX(parameters.paySystemBlockId + '-hidden');
             this.deliveryBlockNode = BX(parameters.deliveryBlockId);
             this.deliveryHiddenBlockNode = BX(parameters.deliveryBlockId + '-hidden');
+            this.deliveryItemsContainer = this.deliveryBlockNode.querySelector('.bx-soa-pp-item-container');
+            this.addressNode = this.deliveryBlockNode;
             this.pickUpBlockNode = BX(parameters.pickUpBlockId);
             this.pickUpHiddenBlockNode = BX(parameters.pickUpBlockId + '-hidden');
             this.propsBlockNode = BX(parameters.propsBlockId);
@@ -376,7 +378,7 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
         animateScrollTo: function (node, duration, shiftToTop){
             if (!node)
                 return;
-            BX.debug(node);
+
             var scrollTop = BX.GetWindowScrollPos().scrollTop,
                 orderBlockPos = BX.pos(this.orderBlockNode),
                 ghostTop = BX.pos(node).top - (this.isMobile ? 50 : 0);
@@ -741,7 +743,6 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 
         checkBlockErrors: function (node){
             var hiddenNode, errorNode, showError, showWarning, errorTooltips, i;
-
             if (hiddenNode = BX(node.id + '-hidden')) {
                 errorNode = hiddenNode.querySelector('div.alert.alert-danger');
                 showError = errorNode && errorNode.style.display != 'none';
@@ -807,7 +808,6 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 
                 if (this.activeSectionId != this.deliveryBlockNode.id) {
                     BX.addClass(this.deliveryBlockNode, 'bx-step-completed');
-                    BX.bind(this.deliveryBlockNode.querySelector('.alert.alert-warning'), 'click', BX.proxy(this.showByClick, this));
                 }
             } else if (BX.hasClass(this.deliveryBlockNode, 'bx-step-warning') && this.activeSectionId != this.deliveryBlockNode.id) {
                 BX.removeClass(this.deliveryBlockNode, 'bx-step-warning');
@@ -1525,7 +1525,6 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
                 && section.next.getAttribute('data-visited') == 'false'
             ) {
                 titleNode = section.next.querySelector('.bx-soa-section-title-container');
-                BX.bind(titleNode, 'click', BX.proxy(this.showByClick, this));
                 editStep = section.next.querySelector('.bx-soa-editstep');
                 if (editStep)
                     editStep.style.display = '';
@@ -1623,7 +1622,6 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
                             ) {
                                 this.changeVisibleSection(nextSection, true);
                                 titleNode = nextSection.querySelector('.bx-soa-section-title-container');
-                                BX.bind(titleNode, 'click', BX.proxy(this.showByClick, this));
                             }
 
                             nextSection.setAttribute('data-visited', 'true');
@@ -1847,35 +1845,13 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
             BX.removeClass(node, 'bx-step-completed');
         },
 
-        showByClick: function (event){
-            var target = event.target || event.srcElement,
-                showNode = BX.findParent(target, {className: "bx-active"}),
-                fadeNode = BX(this.activeSectionId),
-                scrollTop = BX.GetWindowScrollPos().scrollTop;
-
-            if (!showNode || BX.hasClass(showNode, 'bx-selected'))
-                return BX.PreventDefault(event);
-
-            this.reachGoal('edit', showNode);
-
-            this.show(showNode);
-            fadeNode && this.fade(fadeNode);
-
-            setTimeout(BX.delegate(function (){
-                if (BX.pos(showNode).top < scrollTop)
-                    this.animateScrollTo(showNode, 300);
-            }, this), 320);
-
-            return BX.PreventDefault(event);
-        },
-
         /**
          * Checks each active block from top to bottom for errors (showing first block with errors or last block)
          */
         showActualBlock: function (){
             var allSections = this.orderBlockNode.querySelectorAll('.bx-soa-section.bx-active'),
                 i = 0;
-            BX.debug(allSections);
+
             while (allSections[i]) {
                 if (allSections[i].id == this.regionBlockNode.id)
                     this.isValidRegionBlock();
@@ -2127,17 +2103,6 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
                 active = false;
             }
             BX.unbindAll(titleNode);
-            /*if (this.result.SHOW_AUTH) {
-             BX.bind(titleNode, 'click', BX.delegate(function () {
-             this.animateScrollTo(this.authBlockNode);
-             this.addAnimationEffect(this.authBlockNode, 'bx-step-good');
-             }, this));
-             }
-             else {
-             BX.bind(titleNode, 'click', BX.proxy(this.showByClick, this));
-             editButton = titleNode.querySelector('.bx-soa-editstep');
-             editButton && BX.bind(editButton, 'click', BX.proxy(this.showByClick, this));
-             }*/
 
             errorContainer = section.querySelector('.alert.alert-danger');
             this.hasErrorSection[section.id] = errorContainer && errorContainer.style.display != 'none';
@@ -3718,9 +3683,6 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
                 } else
                     BX.removeClass(this.regionBlockNode, 'bx-step-error');
             }
-
-            BX.bind(node.querySelector('.alert.alert-danger'), 'click', BX.proxy(this.showByClick, this));
-            BX.bind(node.querySelector('.alert.alert-warning'), 'click', BX.proxy(this.showByClick, this));
         },
 
         getSelectedPersonType: function (){
@@ -4484,8 +4446,6 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
             node.innerHTML += addedHtml;
 
             node.appendChild(BX.create('DIV', {style: {clear: 'both'}}));
-            BX.bind(node.querySelector('.alert.alert-danger'), 'click', BX.proxy(this.showByClick, this));
-            BX.bind(node.querySelector('.alert.alert-warning'), 'click', BX.proxy(this.showByClick, this));
         },
 
         getSelectedPaySystem: function (){
@@ -4605,11 +4565,20 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
                 deliveryNode = BX.create('DIV', {props: {className: 'bx-soa-pp row'}});
                 this.editDeliveryItems(deliveryNode);
                 deliveryContent.appendChild(deliveryNode);
+                this.getPropertyRowNode(this.addressNode, deliveryContent, false);
                 this.editDeliveryInfo(deliveryNode);
 
                 if (this.params.SHOW_COUPONS_DELIVERY == 'Y')
                     this.editCoupons(deliveryContent);
 
+                /*if (this.propsBlockNode.getAttribute('data-visited') === 'true') {
+                    validationErrors = this.isValidPropertiesBlock(true);
+                    if (validationErrors.length)
+                        BX.addClass(this.propsBlockNode, 'bx-step-error');
+                    else
+                        BX.removeClass(this.propsBlockNode, 'bx-step-error');
+                }*/
+                this.isValidAddressBlock();
                 this.getBlockFooter(deliveryContent);
             }
         },
@@ -4968,8 +4937,6 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
                 node.appendChild(BX.create('STRONG', {text: BX.message('SOA_DELIVERY_SELECT_ERROR')}));
 
             node.appendChild(BX.create('DIV', {style: {clear: 'both'}}));
-            BX.bind(node.querySelector('.alert.alert-danger'), 'click', BX.proxy(this.showByClick, this));
-            BX.bind(node.querySelector('.alert.alert-warning'), 'click', BX.proxy(this.showByClick, this));
         },
 
         selectDelivery: function (event){
@@ -5735,9 +5702,6 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
                 if (validPropsErrors.length)
                     this.showError(this.propsBlockNode, validPropsErrors);
             }
-
-            BX.bind(node.querySelector('.alert.alert-danger'), 'click', BX.proxy(this.showByClick, this));
-            BX.bind(node.querySelector('.alert.alert-warning'), 'click', BX.proxy(this.showByClick, this));
         },
 
         editPropsItems: function (propsNode){
@@ -5745,7 +5709,7 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
                 return;
 
             var propsItemsContainer = BX.create('DIV', {props: {className: 'col-sm-12 bx-soa-customer'}}),
-                group, property, groupIterator = this.propertyCollection.getGroupIterator(), propsIterator;
+                group, property, propertySettings, containerToInsert, groupIterator = this.propertyCollection.getGroupIterator(), propsIterator;
 
             if (!propsItemsContainer)
                 propsItemsContainer = this.propsBlockNode.querySelector('.col-sm-12.bx-soa-customer');
@@ -5759,7 +5723,11 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
                         || this.deliveryLocationInfo.city == property.getId()
                     )
                         continue;
-
+                    propertySettings = property.getSettings();
+                    if (propertySettings.IS_ADDRESS == 'Y') {
+                        this.addressNode = property;
+                        continue;
+                    }
                     this.getPropertyRowNode(property, propsItemsContainer, false);
                 }
             }
@@ -6278,13 +6246,14 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 
             var regionErrors = this.isValidRegionBlock(),
                 propsErrors = this.isValidPropertiesBlock(),
+                addressErrors = this.isValidAddressBlock(),
                 navigated = false, tooltips, i;
 
             if (regionErrors.length) {
                 navigated = true;
                 this.animateScrollTo(this.regionBlockNode, 800, 50);
             }
-            BX.debug(propsErrors);
+
             if (propsErrors.length && !navigated) {
                 if (this.activeSectionId == this.propsBlockNode.id) {
                     tooltips = this.propsBlockNode.querySelectorAll('div.tooltip');
@@ -6296,6 +6265,19 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
                     }
                 } else
                     this.animateScrollTo(this.propsBlockNode, 800, 50);
+            }
+
+            if (addressErrors.length && !navigated) {
+                if (this.activeSectionId == this.deliveryBlockNode.id) {
+                    tooltips = this.deliveryBlockNode.querySelectorAll('div.tooltip');
+                    for (i = 0; i < tooltips.length; i++) {
+                        if (tooltips[i].getAttribute('data-state') == 'opened') {
+                            this.animateScrollTo(BX.findParent(tooltips[i], {className: 'form-group bx-soa-customer-field'}), 800, 50);
+                            break;
+                        }
+                    }
+                } else
+                    this.animateScrollTo(this.deliveryBlockNode, 800, 50);
             }
 
             if (regionErrors.length) {
@@ -6310,7 +6292,14 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
                 BX.addClass(this.propsBlockNode, 'bx-step-error');
             }
 
-            return !(regionErrors.length + propsErrors.length);
+            if (addressErrors.length) {
+                if (this.activeSectionId !== this.propsBlockNode.id)
+                    this.showError(this.deliveryBlockNode, addressErrors);
+
+                BX.addClass(this.deliveryBlockNode, 'bx-step-error');
+            }
+
+            return !(regionErrors.length + propsErrors.length + addressErrors.length);
         },
 
         isValidRegionBlock: function (){
@@ -6349,6 +6338,35 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
                 propContainer = props[i].querySelector('.soa-property-container');
                 if (propContainer) {
                     arProperty = this.validation.properties[id];
+                    if (!arProperty || arProperty.IS_ADDRESS == 'Y') continue;
+                    data = this.getValidationData(arProperty, propContainer);
+                    propsErrors = propsErrors.concat(this.isValidProperty(data, true));
+                }
+            }
+
+            return propsErrors;
+        },
+
+        isValidAddressBlock: function() {
+            if (!this.options.propertyValidation)
+                return [];
+
+            var props = this.deliveryBlockNode.querySelectorAll('.bx-soa-customer-field[data-property-id-row]'),
+                propsErrors = [],
+                id, propContainer, arProperty, data, i;
+
+            for (i = 0; i < props.length; i++) {
+                id = props[i].getAttribute('data-property-id-row');
+                arProperty = this.validation.properties[id];
+                propContainer = this.deliveryBlockNode.querySelector('.soa-property-container');
+
+                 if (propContainer) {
+                     if (!arProperty || arProperty.IS_ADDRESS != 'Y') {
+                         BX.hide(props[i]);
+                         continue;
+                     } else {
+                         BX.show(props[i]);
+                     }
                     data = this.getValidationData(arProperty, propContainer);
                     propsErrors = propsErrors.concat(this.isValidProperty(data, true));
                 }
